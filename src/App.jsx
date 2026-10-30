@@ -61,20 +61,29 @@ export default function App() {
     setIdeas(null)
     setLoading(true)
 
-    try {
+        try {
       const response = await fetch('/api/plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
-      if (!response.ok) throw new Error('AI service unavailable')
+      if (!response.ok) {
+        let reason = 'AI service returned status ' + response.status
+        try {
+          const err = await response.json()
+          if (err.error) reason = err.error + ' (status ' + response.status + ')'
+        } catch {
+          // Response was not JSON, keep the status message.
+        }
+        throw new Error(reason)
+      }
       const data = await response.json()
       if (!Array.isArray(data.ideas) || data.ideas.length === 0) {
-        throw new Error('Unexpected response')
+        throw new Error('AI response had no ideas')
       }
       setIdeas({ ...data, source: 'gemini' })
-    } catch {
-      setIdeas({ ...fallbackSuggestions(form), source: 'builtin' })
+    } catch (err) {
+      setIdeas({ ...fallbackSuggestions(form), source: 'builtin', reason: err.message })
     } finally {
       setLoading(false)
     }
@@ -176,6 +185,7 @@ export default function App() {
                   <p className="tag">
                     {ideas.source === 'gemini' ? 'Personalised by Gemini' : 'Built-in suggestions'}
                   </p>
+                  {ideas.reason && <p className="muted">AI note: {ideas.reason}</p>}
                   {ideas.summary && <p>{ideas.summary}</p>}
                   <ul className="ideas">
                     {ideas.ideas.map((idea) => (
