@@ -1,4 +1,14 @@
-const ALLOWED_TYPES = ['wedding', 'birthday', 'community']
+const TYPE_NAMES = {
+  wedding: 'wedding',
+  engagement: 'engagement ceremony',
+  anniversary: 'anniversary celebration',
+  birthday: 'birthday party',
+  babyshower: 'baby shower',
+  community: 'community event',
+  college: 'college event',
+  corporate: 'corporate event',
+  other: 'custom event',
+}
 
 function clean(value, max) {
   return String(value ?? '').replace(/[\r\n]+/g, ' ').trim().slice(0, max)
@@ -65,19 +75,25 @@ export default async function handler(req, res) {
 
   const body = req.body || {}
   const type = clean(body.type, 20)
+  const customType = clean(body.customType, 60)
   const guests = Number(body.guests)
   const budget = Number(body.budget)
   const date = clean(body.date, 10)
   const city = clean(body.city, 60)
   const vibe = clean(body.vibe, 80)
 
-  if (!ALLOWED_TYPES.includes(type) || !(guests > 0) || !(budget > 0)) {
+  if (!TYPE_NAMES[type] || !(guests > 0) || !(budget > 0)) {
     return res.status(400).json({ error: 'Invalid input' })
   }
+  if (type === 'other' && !customType) {
+    return res.status(400).json({ error: 'Custom event type is required' })
+  }
+
+  const eventName = type === 'other' ? customType : TYPE_NAMES[type]
 
   const prompt = [
     'You are Jashn, a practical celebration planner for Indian families and communities.',
-    `Event type: ${type}`,
+    `Event type: ${eventName}`,
     `Guests: ${guests}`,
     `Budget: INR ${budget}`,
     `Date: ${date}`,
@@ -87,7 +103,7 @@ export default async function handler(req, res) {
     'Reply with JSON only, in exactly this shape:',
     '{"summary":"one sentence","ideas":[{"title":"short title","detail":"one or two sentences"}],"tips":["short tip"]}',
     'Give exactly 4 ideas and 3 tips. Keep every detail under 30 words.',
-    'Make them specific to the budget, city and theme.',
+    'Make them specific to the event type, budget, city and theme.',
     'Keep the tone plain and professional. Do not use emojis or markdown.',
   ].join('\n')
 

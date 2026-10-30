@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import { EVENT_TYPES, buildPlan, fallbackSuggestions } from './lib/planner'
 
-const STORAGE_KEY = 'jashn-state-v1'
+const STORAGE_KEY = 'jashn-state-v2'
 
 const rupees = (n) => '₹' + Math.round(n).toLocaleString('en-IN')
 const shortDate = (iso) =>
@@ -18,6 +18,7 @@ function loadSaved() {
 
 const DEFAULT_FORM = {
   type: 'wedding',
+  customType: '',
   guests: 150,
   budget: 1000000,
   date: '',
@@ -27,7 +28,7 @@ const DEFAULT_FORM = {
 
 export default function App() {
   const [saved] = useState(loadSaved)
-  const [form, setForm] = useState(saved.form || DEFAULT_FORM)
+  const [form, setForm] = useState({ ...DEFAULT_FORM, ...(saved.form || {}) })
   const [plan, setPlan] = useState(saved.plan || null)
   const [ideas, setIdeas] = useState(saved.ideas || null)
   const [checked, setChecked] = useState(saved.checked || {})
@@ -61,7 +62,7 @@ export default function App() {
     setIdeas(null)
     setLoading(true)
 
-        try {
+    try {
       const response = await fetch('/api/plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -117,6 +118,20 @@ export default function App() {
               </option>
             ))}
           </select>
+
+          {form.type === 'other' && (
+            <>
+              <label htmlFor="customType">Describe your event</label>
+              <input
+                id="customType"
+                type="text"
+                maxLength={60}
+                placeholder="Housewarming, farewell party, reunion"
+                value={form.customType}
+                onChange={update('customType')}
+              />
+            </>
+          )}
 
           <div className="row">
             <div>
