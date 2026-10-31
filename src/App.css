@@ -957,3 +957,19 @@ html {
     gap: 8px;
   }
 }
+
+/* Footer divider, short and centred */
+.footer-credit {
+  margin-top: 22px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.footer-credit::before {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 2px;
+  margin: 0 auto 18px;
+  background: var(--ink);
+}
