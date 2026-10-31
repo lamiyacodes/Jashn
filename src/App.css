@@ -909,3 +909,26 @@ form > button[type='submit']:active {
     min-width: 0;
   }
 }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 560px) {
+  .site-footer {
+    padding: 26px 0;
+  }
+
+  .footer-main {
+    font-size: 0.8rem;
+  }
+
+  .footer-tagline {
+    font-size: 0.95rem;
+  }
+
+  .footer-credit {
+    margin-top: 12px;
+    font-size: 0.72rem;
+  }
+}
