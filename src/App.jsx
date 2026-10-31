@@ -12,6 +12,28 @@ const REFINE_EXAMPLES = [
   'Prioritise photography',
 ]
 
+const SECTIONS = [
+  ['overview', 'Overview'],
+  ['budget', 'Budget'],
+  ['timeline', 'Timeline'],
+  ['checklist', 'Checklist'],
+  ['tracker', 'Spending tracker'],
+]
+
+const FEATURES = [
+  'Budget split with a clear chart',
+  'Countdown timeline built from your date',
+  'Vendor checklist with progress',
+  'Ideas written for your city and theme',
+  'Refine the plan just by asking',
+]
+
+const STEPS = [
+  ['1', 'Describe your event', 'Choose the event type, guests, budget, date and city.'],
+  ['2', 'Get a complete plan', 'Budget, timeline, vendor checklist and personalised ideas in seconds.'],
+  ['3', 'Refine it by asking', 'Say what to change and the budget is rebalanced for you.'],
+]
+
 const rupees = (n) => '₹' + Math.round(n).toLocaleString('en-IN')
 const shortDate = (iso) =>
   new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -65,6 +87,7 @@ export default function App() {
   const [refineNote, setRefineNote] = useState('')
   const [refineError, setRefineError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [section, setSection] = useState('overview')
 
   const hasPlanRef = useRef(!!saved.plan)
   const [view, setView] = useState(() => viewFromHash(!!saved.plan))
@@ -132,6 +155,8 @@ export default function App() {
     setRefineText('')
     setRefineNote('')
     setRefineError('')
+    setConfirmDelete(false)
+    setSection('overview')
     setLoading(true)
     setView('plan')
     window.location.hash = 'plan'
@@ -242,110 +267,157 @@ export default function App() {
   const eventDateIso = plan ? plan.timeline[plan.timeline.length - 1].due : null
 
   return (
-    <div className="app">
-      <header className="header">
-        <h1>Jashn</h1>
-        <p>Plan the celebration, not the stress.</p>
+    <div className="site">
+      <header className="topbar">
+        <div className="topbar-inner">
+          <a href="#home" className="brand">
+            Jashn
+          </a>
+          {view === 'plan' ? (
+            <button type="button" className="top-btn" onClick={goHome}>
+              Edit details or plan another event
+            </button>
+          ) : (
+            <span className="topbar-tag">Celebration and event planner</span>
+          )}
+        </div>
       </header>
 
       {view === 'home' && (
-        <main>
-          <form className="card" onSubmit={handleSubmit}>
-            <h2>Event details</h2>
-
-            <label htmlFor="type">Event type</label>
-            <select id="type" value={form.type} onChange={update('type')}>
-              {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                <option key={key} value={key}>
-                  {value.label}
-                </option>
-              ))}
-            </select>
-
-            {form.type === 'other' && (
-              <>
-                <label htmlFor="customType">Describe your event</label>
-                <input
-                  id="customType"
-                  type="text"
-                  maxLength={60}
-                  placeholder="Housewarming, farewell party, reunion"
-                  value={form.customType}
-                  onChange={update('customType')}
-                />
-              </>
-            )}
-
-            <div className="row">
-              <div>
-                <label htmlFor="guests">Number of guests</label>
-                <input id="guests" type="number" min="1" value={form.guests} onChange={update('guests')} />
-              </div>
-              <div>
-                <label htmlFor="budget">Total budget (₹)</label>
-                <input id="budget" type="number" min="1" value={form.budget} onChange={update('budget')} />
-              </div>
-            </div>
-
-            <div className="row">
-              <div>
-                <label htmlFor="date">Event date</label>
-                <input id="date" type="date" value={form.date} onChange={update('date')} />
-              </div>
-              <div>
-                <label htmlFor="city">City</label>
-                <input id="city" type="text" placeholder="Lucknow" value={form.city} onChange={update('city')} />
-              </div>
-            </div>
-
-            <label htmlFor="vibe">Theme or style (optional)</label>
-            <input
-              id="vibe"
-              type="text"
-              placeholder="Traditional, minimal, pastel"
-              value={form.vibe}
-              onChange={update('vibe')}
-            />
-
-            {error && (
-              <p className="message error" role="alert">
-                {error}
+        <main className="container">
+          <section className="hero">
+            <div className="hero-copy">
+              <p className="eyebrow">Weddings, birthdays and community events</p>
+              <h1>
+                Plan the celebration, <em>not the stress.</em>
+              </h1>
+              <p className="lead">
+                Tell Jashn about your event and get a budget, a countdown timeline, a vendor checklist
+                and ideas written for your city. Then reshape the plan just by asking.
               </p>
-            )}
+              <ul className="feature-list">
+                {FEATURES.map((feature) => (
+                  <li key={feature}>
+                    <span className="dot" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-            <button type="submit" disabled={loading}>
-              {loading ? 'Preparing plan...' : 'Generate plan'}
-            </button>
-          </form>
+            <div className="hero-form">
+              <form className="card" onSubmit={handleSubmit}>
+                <h2>Start your plan</h2>
 
-                    {plan && (
-            <div className="saved">
-              <p className="muted">You have a saved plan.</p>
-              {!confirmDelete ? (
-                <div className="saved-actions">
-                  <a href="#plan">View your last plan</a>
-                  <button type="button" className="link-btn danger" onClick={() => setConfirmDelete(true)}>
-                    Delete saved plan
-                  </button>
+                <label htmlFor="type">Event type</label>
+                <select id="type" value={form.type} onChange={update('type')}>
+                  {Object.entries(EVENT_TYPES).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value.label}
+                    </option>
+                  ))}
+                </select>
+
+                {form.type === 'other' && (
+                  <>
+                    <label htmlFor="customType">Describe your event</label>
+                    <input
+                      id="customType"
+                      type="text"
+                      maxLength={60}
+                      placeholder="Housewarming, farewell party, reunion"
+                      value={form.customType}
+                      onChange={update('customType')}
+                    />
+                  </>
+                )}
+
+                <div className="row">
+                  <div>
+                    <label htmlFor="guests">Number of guests</label>
+                    <input id="guests" type="number" min="1" value={form.guests} onChange={update('guests')} />
+                  </div>
+                  <div>
+                    <label htmlFor="budget">Total budget (₹)</label>
+                    <input id="budget" type="number" min="1" value={form.budget} onChange={update('budget')} />
+                  </div>
                 </div>
-              ) : (
-                <div className="saved-actions" role="alert">
-                  <span>Delete this plan?</span>
-                  <button type="button" className="link-btn danger" onClick={clearSavedPlan}>
-                    Yes, delete
-                  </button>
-                  <button type="button" className="link-btn" onClick={() => setConfirmDelete(false)}>
-                    Keep it
-                  </button>
+
+                <div className="row">
+                  <div>
+                    <label htmlFor="date">Event date</label>
+                    <input id="date" type="date" value={form.date} onChange={update('date')} />
+                  </div>
+                  <div>
+                    <label htmlFor="city">City</label>
+                    <input id="city" type="text" placeholder="Lucknow" value={form.city} onChange={update('city')} />
+                  </div>
+                </div>
+
+                <label htmlFor="vibe">Theme or style (optional)</label>
+                <input
+                  id="vibe"
+                  type="text"
+                  placeholder="Traditional, minimal, pastel"
+                  value={form.vibe}
+                  onChange={update('vibe')}
+                />
+
+                {error && (
+                  <p className="message error" role="alert">
+                    {error}
+                  </p>
+                )}
+
+                <button type="submit" disabled={loading}>
+                  {loading ? 'Preparing plan...' : 'Generate plan'}
+                </button>
+              </form>
+
+              {plan && (
+                <div className="saved">
+                  <p className="muted">You have a saved plan.</p>
+                  {!confirmDelete ? (
+                    <div className="saved-actions">
+                      <a href="#plan">View your last plan</a>
+                      <button
+                        type="button"
+                        className="link-btn danger"
+                        onClick={() => setConfirmDelete(true)}
+                      >
+                        Delete saved plan
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="saved-actions" role="alert">
+                      <span>Delete this plan?</span>
+                      <button type="button" className="link-btn danger" onClick={clearSavedPlan}>
+                        Yes, delete
+                      </button>
+                      <button type="button" className="link-btn" onClick={() => setConfirmDelete(false)}>
+                        Keep it
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-                  </main>
+          </section>
+
+          <section className="steps" aria-label="How it works">
+            {STEPS.map(([num, title, text]) => (
+              <div key={num} className="step">
+                <span className="num">{num}</span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            ))}
+          </section>
+        </main>
       )}
 
       {view === 'plan' && plan && (
-        <main aria-live="polite">
+        <main className="container" aria-live="polite">
           <div className="plan-head">
             <h2>{planTitle}</h2>
             <p className="muted">
@@ -353,9 +425,6 @@ export default function App() {
               {form.city ? ' in ' + titleCase(form.city) : ''}
               {eventDateIso ? ', ' + shortDate(eventDateIso) : ''}
             </p>
-            <button type="button" className="back" onClick={goHome}>
-              Edit details or plan another event
-            </button>
           </div>
 
           <section className="stats" aria-label="Summary">
@@ -373,199 +442,232 @@ export default function App() {
             </div>
           </section>
 
-          <section className="card">
-            <h2>Ideas and recommendations</h2>
-            {loading && <p className="muted">Generating personalised ideas...</p>}
-            {ideas && (
-              <>
-                <p className="tag">
-                  {ideas.source === 'gemini' ? 'Personalised by Gemini' : 'Built-in suggestions'}
-                </p>
-                {ideas.reason && <p className="muted">AI note: {ideas.reason}</p>}
-                {ideas.summary && <p>{ideas.summary}</p>}
-                <ul className="ideas">
-                  {ideas.ideas.map((idea) => (
-                    <li key={idea.title}>
-                      <strong>{idea.title}</strong>
-                      <span>{idea.detail}</span>
-                    </li>
-                  ))}
-                </ul>
-                {ideas.tips && ideas.tips.length > 0 && (
-                  <>
-                    <h3>Planning tips</h3>
-                    <ul>
-                      {ideas.tips.map((tip) => (
-                        <li key={tip}>{tip}</li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </>
-            )}
-          </section>
-
-          <section className="card">
-            <h2>Budget allocation</h2>
-            <BudgetChart items={plan.budget} total={rupees(plan.total)} />
-            {plan.budget.map((item) => (
-              <div key={item.name} className="line">
-                <div className="line-top">
-                  <span>
-                    {item.name} ({item.pct}%)
-                  </span>
-                  <strong>{rupees(item.amount)}</strong>
-                </div>
-                <div className="bar">
-                  <span style={{ width: Math.min(100, item.pct * 3) + '%' }} />
-                </div>
-              </div>
-            ))}
-          </section>
-
-          <section className="card">
-            <h2>Refine your plan</h2>
-            <p className="muted">
-              Tell Jashn what to change and the budget split will be adjusted to match.
-            </p>
-            <div className="chips">
-              {REFINE_EXAMPLES.map((example) => (
+          <div className="workspace">
+            <nav className="sidenav" aria-label="Plan sections">
+              {SECTIONS.map(([key, label]) => (
                 <button
-                  key={example}
+                  key={key}
                   type="button"
-                  className="chip"
-                  onClick={() => setRefineText(example)}
+                  className={'nav-btn' + (section === key ? ' active' : '')}
+                  aria-current={section === key ? 'page' : undefined}
+                  onClick={() => setSection(key)}
                 >
-                  {example}
+                  {label}
                 </button>
               ))}
-            </div>
-            <form onSubmit={handleRefine}>
-              <label htmlFor="refine">Your request</label>
-              <input
-                id="refine"
-                type="text"
-                maxLength={200}
-                placeholder="Spend more on food and less on decor"
-                value={refineText}
-                onChange={(e) => setRefineText(e.target.value)}
-              />
-              <button type="submit" disabled={refining}>
-                {refining ? 'Updating budget...' : 'Update budget'}
-              </button>
-            </form>
-            {refineError && (
-              <p className="message error" role="alert">
-                {refineError}
-              </p>
-            )}
-            {refineNote && <p className="message note">{refineNote}</p>}
-          </section>
+            </nav>
 
-          <section className="card">
-            <h2>Timeline</h2>
-            {plan.compressed && (
-              <p className="message warning">
-                The event is closer than the ideal lead time, so the schedule has been compressed.
-                Start with the first item immediately.
-              </p>
-            )}
-            <ol className="timeline">
-              {plan.timeline.map((step) => (
-                <li key={step.title}>
-                  <span className="date">{shortDate(step.due)}</span>
-                  <span>{step.title}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
+            <div className="content">
+              {section === 'overview' && (
+                <section className="card">
+                  <h2>Ideas and recommendations</h2>
+                  {loading && <p className="muted">Generating personalised ideas...</p>}
+                  {ideas && (
+                    <>
+                      <p className="tag">
+                        {ideas.source === 'gemini' ? 'Personalised by Gemini' : 'Built-in suggestions'}
+                      </p>
+                      {ideas.reason && <p className="muted">AI note: {ideas.reason}</p>}
+                      {ideas.summary && <p>{ideas.summary}</p>}
+                      <ul className="ideas">
+                        {ideas.ideas.map((idea) => (
+                          <li key={idea.title}>
+                            <strong>{idea.title}</strong>
+                            <span>{idea.detail}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {ideas.tips && ideas.tips.length > 0 && (
+                        <>
+                          <h3>Planning tips</h3>
+                          <ul>
+                            {ideas.tips.map((tip) => (
+                              <li key={tip}>{tip}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </>
+                  )}
+                </section>
+              )}
 
-          <section className="card">
-            <h2>Vendor checklist</h2>
-            <div
-              className="bar large"
-              role="progressbar"
-              aria-label="Vendor checklist progress"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={progress}
-            >
-              <span style={{ width: progress + '%' }} />
-            </div>
-            <p className="muted">
-              {completed} of {plan.vendors.length} completed
-            </p>
-            {plan.vendors.map((vendor) => (
-              <label key={vendor} className="check">
-                <input
-                  type="checkbox"
-                  checked={!!checked[vendor]}
-                  onChange={() => setChecked({ ...checked, [vendor]: !checked[vendor] })}
-                />
-                <span className={checked[vendor] ? 'done' : ''}>{vendor}</span>
-              </label>
-            ))}
-          </section>
+              {section === 'budget' && (
+                <section className="card">
+                  <h2>Budget allocation</h2>
+                  <BudgetChart items={plan.budget} total={rupees(plan.total)} />
+                  {plan.budget.map((item) => (
+                    <div key={item.name} className="line">
+                      <div className="line-top">
+                        <span>
+                          {item.name} ({item.pct}%)
+                        </span>
+                        <strong>{rupees(item.amount)}</strong>
+                      </div>
+                      <div className="bar">
+                        <span style={{ width: Math.min(100, item.pct * 3) + '%' }} />
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              )}
 
-          <section className="card">
-            <h2>Spending tracker</h2>
-            <p className="muted">
-              Enter the amount spent in each category. You will be warned if a category exceeds its plan.
-            </p>
-            {plan.budget.map((item) => {
-              const amount = Number(spent[item.name]) || 0
-              const isOver = amount > item.amount
-              return (
-                <div key={item.name} className="line">
-                  <div className="line-top">
-                    <label htmlFor={'spent-' + item.name}>
-                      {item.name} (planned {rupees(item.amount)})
+              {section === 'timeline' && (
+                <section className="card">
+                  <h2>Timeline</h2>
+                  {plan.compressed && (
+                    <p className="message warning">
+                      The event is closer than the ideal lead time, so the schedule has been compressed.
+                      Start with the first item immediately.
+                    </p>
+                  )}
+                  <ol className="timeline">
+                    {plan.timeline.map((step) => (
+                      <li key={step.title}>
+                        <span className="date">{shortDate(step.due)}</span>
+                        <span>{step.title}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+
+              {section === 'checklist' && (
+                <section className="card">
+                  <h2>Vendor checklist</h2>
+                  <div
+                    className="bar large"
+                    role="progressbar"
+                    aria-label="Vendor checklist progress"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={progress}
+                  >
+                    <span style={{ width: progress + '%' }} />
+                  </div>
+                  <p className="muted">
+                    {completed} of {plan.vendors.length} completed
+                  </p>
+                  {plan.vendors.map((vendor) => (
+                    <label key={vendor} className="check">
+                      <input
+                        type="checkbox"
+                        checked={!!checked[vendor]}
+                        onChange={() => setChecked({ ...checked, [vendor]: !checked[vendor] })}
+                      />
+                      <span className={checked[vendor] ? 'done' : ''}>{vendor}</span>
                     </label>
-                    <input
-                      id={'spent-' + item.name}
-                      className="spend"
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      value={spent[item.name] ?? ''}
-                      onChange={(e) => setSpent({ ...spent, [item.name]: e.target.value })}
-                    />
-                  </div>
-                  <div className={'bar' + (isOver ? ' over' : '')}>
-                    <span style={{ width: Math.min(100, (amount / item.amount) * 100) + '%' }} />
-                  </div>
+                  ))}
+                </section>
+              )}
+
+              {section === 'tracker' && (
+                <section className="card">
+                  <h2>Spending tracker</h2>
+                  <p className="muted">
+                    Enter the amount spent in each category. You will be warned if a category exceeds its
+                    plan.
+                  </p>
+                  {plan.budget.map((item) => {
+                    const amount = Number(spent[item.name]) || 0
+                    const isOver = amount > item.amount
+                    return (
+                      <div key={item.name} className="line">
+                        <div className="line-top">
+                          <label htmlFor={'spent-' + item.name}>
+                            {item.name} (planned {rupees(item.amount)})
+                          </label>
+                          <input
+                            id={'spent-' + item.name}
+                            className="spend"
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={spent[item.name] ?? ''}
+                            onChange={(e) => setSpent({ ...spent, [item.name]: e.target.value })}
+                          />
+                        </div>
+                        <div className={'bar' + (isOver ? ' over' : '')}>
+                          <span style={{ width: Math.min(100, (amount / item.amount) * 100) + '%' }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  <p>
+                    <strong>
+                      Spent so far: {rupees(totalSpent)} of {rupees(plan.total)}
+                    </strong>
+                  </p>
+
+                  {totalSpent > plan.total && (
+                    <p className="message error" role="alert">
+                      You have exceeded the total budget by {rupees(totalSpent - plan.total)}.
+                    </p>
+                  )}
+                  {overspent.map((item) => (
+                    <p key={item.name} className="message warning">
+                      {item.name} is over its planned amount by{' '}
+                      {rupees((Number(spent[item.name]) || 0) - item.amount)}. Consider reducing other
+                      categories or using the contingency.
+                    </p>
+                  ))}
+                </section>
+              )}
+            </div>
+
+            <aside className="aside">
+              <section className="card">
+                <h2>Refine your plan</h2>
+                <p className="muted">
+                  Tell Jashn what to change and the budget split will be adjusted to match.
+                </p>
+                <div className="chips">
+                  {REFINE_EXAMPLES.map((example) => (
+                    <button
+                      key={example}
+                      type="button"
+                      className="chip"
+                      onClick={() => setRefineText(example)}
+                    >
+                      {example}
+                    </button>
+                  ))}
                 </div>
-              )
-            })}
-
-            <p>
-              <strong>
-                Spent so far: {rupees(totalSpent)} of {rupees(plan.total)}
-              </strong>
-            </p>
-
-            {totalSpent > plan.total && (
-              <p className="message error" role="alert">
-                You have exceeded the total budget by {rupees(totalSpent - plan.total)}.
-              </p>
-            )}
-            {overspent.map((item) => (
-              <p key={item.name} className="message warning">
-                {item.name} is over its planned amount by{' '}
-                {rupees((Number(spent[item.name]) || 0) - item.amount)}. Consider reducing other
-                categories or using the contingency.
-              </p>
-            ))}
-          </section>
+                <form onSubmit={handleRefine}>
+                  <label htmlFor="refine">Your request</label>
+                  <input
+                    id="refine"
+                    type="text"
+                    maxLength={200}
+                    placeholder="Spend more on food and less on decor"
+                    value={refineText}
+                    onChange={(e) => setRefineText(e.target.value)}
+                  />
+                  <button type="submit" disabled={refining}>
+                    {refining ? 'Updating budget...' : 'Update budget'}
+                  </button>
+                </form>
+                {refineError && (
+                  <p className="message error" role="alert">
+                    {refineError}
+                  </p>
+                )}
+                {refineNote && <p className="message note">{refineNote}</p>}
+              </section>
+            </aside>
+          </div>
         </main>
       )}
 
-      <footer>
-        <p className="footer-main">Jashn ~ Built for Hack2Skill PromptWars 2026</p>
-        <p className="footer-tagline">Plan the celebration, not the stress.</p>
-        <p className="footer-credit">
-          Designed and developed by <strong>Lamiya Zainab Abidi</strong>
-        </p>
+      <footer className="site-footer">
+        <div className="container">
+          <p className="footer-main">Jashn ~ Built for Hack2Skill PromptWars 2026</p>
+          <p className="footer-tagline">Plan the celebration, not the stress.</p>
+          <p className="footer-credit">
+            Designed and developed by <strong>Lamiya Zainab Abidi</strong>
+          </p>
+        </div>
       </footer>
     </div>
   )

@@ -1,28 +1,37 @@
 const COLORS = [
-  '#0f1b3d',
-  '#c8a24a',
-  '#3e63a8',
-  '#8a6d1f',
-  '#5d6573',
-  '#b8923f',
-  '#1b2b52',
-  '#dcbb68',
-  '#7a8fb8',
-  '#a8884a',
+  '#f6a7c5',
+  '#ffd98a',
+  '#9fdfd3',
+  '#c8b6f2',
+  '#ffc4a3',
+  '#a8cbf7',
+  '#c4e3a0',
+  '#f9b4b8',
+  '#e3d4ff',
+  '#d9d2c3',
 ]
+
+const INK = '#1b1033'
 
 export default function BudgetChart({ items, total }) {
   const size = 200
-  const stroke = 34
+  const stroke = 32
   const center = size / 2
-  const radius = (size - stroke) / 2
+  const radius = (size - stroke - 10) / 2
   const circumference = 2 * Math.PI * radius
   const sum = items.reduce((s, i) => s + i.pct, 0) || 1
+  const gap = items.length > 1 ? 3 : 0
 
   let used = 0
   const segments = items.map((item, index) => {
     const length = (item.pct / sum) * circumference
-    const segment = { item, length, offset: used, color: COLORS[index % COLORS.length] }
+    const draw = Math.max(0, length - gap)
+    const segment = {
+      item,
+      draw,
+      offset: used + gap / 2,
+      color: COLORS[index % COLORS.length],
+    }
     used += length
     return segment
   })
@@ -35,9 +44,16 @@ export default function BudgetChart({ items, total }) {
         role="img"
         aria-label="Donut chart of the budget split"
       >
-        <circle cx={center} cy={center} r={radius} fill="none" stroke="#efe9da" strokeWidth={stroke} />
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="none"
+          stroke={INK}
+          strokeWidth={stroke + 6}
+        />
         <g transform={`rotate(-90 ${center} ${center})`}>
-          {segments.map(({ item, length, offset, color }) => (
+          {segments.map(({ item, draw, offset, color }) => (
             <circle
               key={item.name}
               cx={center}
@@ -46,7 +62,7 @@ export default function BudgetChart({ items, total }) {
               fill="none"
               stroke={color}
               strokeWidth={stroke}
-              strokeDasharray={`${length} ${circumference - length}`}
+              strokeDasharray={`${draw} ${circumference - draw}`}
               strokeDashoffset={-offset}
             >
               <title>{item.name + ': ' + item.pct + '%'}</title>

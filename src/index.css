@@ -1,16 +1,22 @@
 :root {
-  --navy: #0f1b3d;
-  --navy-soft: #1b2b52;
-  --gold: #c8a24a;
-  --gold-dark: #8a6d1f;
-  --gold-soft: #f6efdc;
-  --ivory: #faf7f0;
-  --line: #e8e1d0;
-  --ink: #1f2430;
-  --muted: #5d6573;
+  --paper: #fff6ea;
+  --ink: #1b1033;
+  --muted: #655c7a;
+  --pink: #f7a8c8;
+  --pink-soft: #fde1ee;
+  --gold: #ffd98a;
+  --gold-soft: #fff3cf;
+  --gold-deep: #f2bf57;
+  --teal: #9fdfd3;
+  --teal-soft: #dcf6f1;
+  --violet: #c8b6f2;
+  --violet-soft: #ece4ff;
+  --violet-deep: #6a3fd6;
+  --rose: #c8467f;
+  --display: 'Fraunces', Georgia, 'Times New Roman', serif;
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
   color: var(--ink);
-  background: var(--ivory);
+  background: var(--paper);
   line-height: 1.55;
 }
 
@@ -21,11 +27,13 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--ivory);
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(27, 16, 51, 0.07) 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
 }
 
 h1,
 h2,
 h3 {
-  line-height: 1.25;
+  line-height: 1.2;
 }
