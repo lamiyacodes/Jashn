@@ -333,3 +333,31 @@ footer p {
     min-width: 0;
   }
 }
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.chip {
+  width: auto;
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid #b8c0cc;
+  border-radius: 99px;
+  background: #ffffff;
+  color: #323f4b;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.chip:hover {
+  background: #eef2f8;
+}
+
+.message.note {
+  background: #eef2f8;
+  border-color: #3e63a8;
+  color: #1b2b4b;
+}

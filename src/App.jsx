@@ -4,6 +4,13 @@ import { EVENT_TYPES, buildPlan, fallbackSuggestions } from './lib/planner'
 
 const STORAGE_KEY = 'jashn-state-v2'
 
+const REFINE_EXAMPLES = [
+  'Keep the total spend low',
+  'Spend more on food',
+  'Reduce decor costs',
+  'Prioritise photography',
+]
+
 const rupees = (n) => '₹' + Math.round(n).toLocaleString('en-IN')
 const shortDate = (iso) =>
   new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -35,6 +42,10 @@ export default function App() {
   const [spent, setSpent] = useState(saved.spent || {})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [refineText, setRefineText] = useState('')
+  const [refining, setRefining] = useState(false)
+  const [refineNote, setRefineNote] = useState('')
+  const [refineError, setRefineError] = useState('')
 
   useEffect(() => {
     try {
@@ -56,10 +67,16 @@ export default function App() {
       return
     }
 
-    setPlan(result)
+    const eventName =
+      form.type === 'other' ? form.customType.trim() : EVENT_TYPES[form.type].noun
+
+    setPlan({ ...result, eventName })
     setChecked({})
     setSpent({})
     setIdeas(null)
+    setRefineText('')
+    setRefineNote('')
+    setRefineError('')
     setLoading(true)
 
     try {
@@ -87,6 +104,66 @@ export default function App() {
       setIdeas({ ...fallbackSuggestions(form), source: 'builtin', reason: err.message })
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleRefine(e) {
+    e.preventDefault()
+    const instruction = refineText.trim()
+    if (!instruction) {
+      setRefineError('Describe what you would like to change.')
+      return
+    }
+
+    const eventName =
+      plan.eventName ||
+      (form.type === 'other' ? form.customType.trim() : EVENT_TYPES[form.type].noun)
+
+    setRefineError('')
+    setRefineNote('')
+    setRefining(true)
+
+    try {
+      const response = await fetch('/api/refine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventName,
+          guests: plan.guests,
+          budget: plan.total,
+          city: form.city,
+          vibe: form.vibe,
+          instruction,
+          categories: plan.budget.map(({ name, pct }) => ({ name, pct })),
+        }),
+      })
+      if (!response.ok) {
+        let reason = 'status ' + response.status
+        try {
+          const err = await response.json()
+          if (err.error) reason = err.error
+        } catch {
+          // Response was not JSON, keep the status message.
+        }
+        throw new Error(reason)
+      }
+      const data = await response.json()
+      if (!Array.isArray(data.budget)) throw new Error('AI response had no budget')
+
+      setPlan((current) => ({
+        ...current,
+        budget: current.budget.map((item) => {
+          const match = data.budget.find((b) => b.name === item.name)
+          const pct = match && Number.isFinite(Number(match.pct)) ? Number(match.pct) : item.pct
+          return { ...item, pct, amount: Math.round((current.total * pct) / 100) }
+        }),
+      }))
+      setRefineNote(data.note || 'The budget split has been updated.')
+      setRefineText('')
+    } catch (err) {
+      setRefineError('Could not refine the plan right now (' + err.message + '). Your plan is unchanged.')
+    } finally {
+      setRefining(false)
     }
   }
 
@@ -239,6 +316,45 @@ export default function App() {
                   </div>
                 </div>
               ))}
+            </section>
+
+            <section className="card">
+              <h2>Refine your plan</h2>
+              <p className="muted">
+                Tell Jashn what to change and the budget split will be adjusted to match.
+              </p>
+              <div className="chips">
+                {REFINE_EXAMPLES.map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    className="chip"
+                    onClick={() => setRefineText(example)}
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+              <form onSubmit={handleRefine}>
+                <label htmlFor="refine">Your request</label>
+                <input
+                  id="refine"
+                  type="text"
+                  maxLength={200}
+                  placeholder="Spend more on food and less on decor"
+                  value={refineText}
+                  onChange={(e) => setRefineText(e.target.value)}
+                />
+                <button type="submit" disabled={refining}>
+                  {refining ? 'Updating budget...' : 'Update budget'}
+                </button>
+              </form>
+              {refineError && (
+                <p className="message error" role="alert">
+                  {refineError}
+                </p>
+              )}
+              {refineNote && <p className="message note">{refineNote}</p>}
             </section>
 
             <section className="card">
