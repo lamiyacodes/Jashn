@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { EVENT_TYPES, buildPlan, fallbackSuggestions } from './lib/planner'
+import BudgetChart from './BudgetChart'
 
 const STORAGE_KEY = 'jashn-state-v2'
 
@@ -40,6 +41,14 @@ function viewFromHash(hasPlan) {
 function capitalise(text) {
   const value = String(text || '')
   return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function titleCase(text) {
+  return String(text || '')
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
 }
 
 export default function App() {
@@ -341,7 +350,7 @@ export default function App() {
             <h2>{planTitle}</h2>
             <p className="muted">
               {plan.guests} guests
-              {form.city ? ' in ' + form.city : ''}
+              {form.city ? ' in ' + titleCase(form.city) : ''}
               {eventDateIso ? ', ' + shortDate(eventDateIso) : ''}
             </p>
             <button type="button" className="back" onClick={goHome}>
@@ -398,6 +407,7 @@ export default function App() {
 
           <section className="card">
             <h2>Budget allocation</h2>
+            <BudgetChart items={plan.budget} total={rupees(plan.total)} />
             {plan.budget.map((item) => (
               <div key={item.name} className="line">
                 <div className="line-top">

@@ -513,3 +513,67 @@ footer p {
 .link-btn.danger:hover {
   color: #7a1a12;
 }
+
+.chart {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 28px;
+  margin: 4px 0 22px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0ead9;
+}
+
+.chart-svg {
+  width: 210px;
+  height: 210px;
+  flex-shrink: 0;
+}
+
+.chart-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  fill: var(--muted);
+}
+
+.chart-total {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums;
+  font-feature-settings: 'lnum' 1;
+  fill: var(--navy);
+}
+
+.legend {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 0.92rem;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  flex: 1;
+  color: var(--ink);
+}
+
+.legend strong {
+  color: var(--navy);
+}
