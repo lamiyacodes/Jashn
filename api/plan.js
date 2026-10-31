@@ -10,8 +10,15 @@ const TYPE_NAMES = {
   other: 'custom event',
 }
 
+const MAX_TOTAL_MS = 24000
+const CALL_TIMEOUT_MS = 11000
+
 function clean(value, max) {
   return String(value ?? '').replace(/[\r\n]+/g, ' ').trim().slice(0, max)
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 function extractJson(text) {
@@ -29,37 +36,57 @@ function extractJson(text) {
 
 async function askGemini(prompt, apiKey, model) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey,
-    },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.7,
-        maxOutputTokens: 4096,
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), CALL_TIMEOUT_MS)
+
+  let response
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
       },
-    }),
-  })
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+          maxOutputTokens: 4096,
+        },
+      }),
+    })
+  } catch {
+    const err = new Error('Gemini did not respond in time')
+    err.retryable = true
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (!response.ok) {
-    throw new Error(`Gemini returned status ${response.status}`)
+    const err = new Error(`Gemini returned status ${response.status}`)
+    // Busy or temporary errors are worth retrying; key or model errors are not.
+    err.retryable = [429, 500, 502, 503, 504].includes(response.status)
+    throw err
   }
 
   const data = await response.json()
   const candidate = data?.candidates?.[0]
   const text = candidate?.content?.parts?.map((p) => p.text || '').join('')
   if (!text) {
-    throw new Error(`Empty AI reply (finish reason: ${candidate?.finishReason || 'unknown'})`)
+    const err = new Error(`Empty AI reply (finish reason: ${candidate?.finishReason || 'unknown'})`)
+    err.retryable = true
+    throw err
   }
 
   try {
     return extractJson(text)
   } catch {
-    throw new Error(`Unreadable AI reply (finish reason: ${candidate?.finishReason || 'unknown'})`)
+    const err = new Error(`Unreadable AI reply (finish reason: ${candidate?.finishReason || 'unknown'})`)
+    err.retryable = true
+    throw err
   }
 }
 
@@ -107,25 +134,36 @@ export default async function handler(req, res) {
     'Keep the tone plain and professional. Do not use emojis or markdown.',
   ].join('\n')
 
-  const model = process.env.GEMINI_MODEL || 'gemini-flash-latest'
+  const primary = process.env.GEMINI_MODEL || 'gemini-flash-latest'
+  const models = [primary, 'gemini-flash-lite-latest'].filter((m, i, arr) => arr.indexOf(m) === i)
 
+  const startedAt = Date.now()
   let lastError = 'AI request failed'
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const parsed = await askGemini(prompt, apiKey, model)
-      if (!parsed || !Array.isArray(parsed.ideas) || parsed.ideas.length === 0) {
-        throw new Error('AI reply had no ideas')
+
+  for (const model of models) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (Date.now() - startedAt > MAX_TOTAL_MS) break
+
+      try {
+        const parsed = await askGemini(prompt, apiKey, model)
+        if (!parsed || !Array.isArray(parsed.ideas) || parsed.ideas.length === 0) {
+          const err = new Error('AI reply had no ideas')
+          err.retryable = true
+          throw err
+        }
+        return res.status(200).json({
+          summary: String(parsed.summary || ''),
+          ideas: parsed.ideas.slice(0, 6).map((i) => ({
+            title: String(i.title || ''),
+            detail: String(i.detail || ''),
+          })),
+          tips: Array.isArray(parsed.tips) ? parsed.tips.slice(0, 5).map(String) : [],
+        })
+      } catch (err) {
+        lastError = err.message || 'AI request failed'
+        if (!err.retryable) break
+        if (attempt === 0) await sleep(1200)
       }
-      return res.status(200).json({
-        summary: String(parsed.summary || ''),
-        ideas: parsed.ideas.slice(0, 6).map((i) => ({
-          title: String(i.title || ''),
-          detail: String(i.detail || ''),
-        })),
-        tips: Array.isArray(parsed.tips) ? parsed.tips.slice(0, 5).map(String) : [],
-      })
-    } catch (err) {
-      lastError = err.message || 'AI request failed'
     }
   }
 
