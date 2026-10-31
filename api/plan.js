@@ -1,3 +1,4 @@
+/* global process */
 const TYPE_NAMES = {
   wedding: 'wedding',
   engagement: 'engagement ceremony',

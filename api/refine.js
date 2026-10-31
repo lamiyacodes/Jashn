@@ -1,3 +1,4 @@
+/* global process */
 const MAX_TOTAL_MS = 24000
 const CALL_TIMEOUT_MS = 11000
 

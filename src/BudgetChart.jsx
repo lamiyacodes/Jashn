@@ -22,18 +22,16 @@ export default function BudgetChart({ items, total }) {
   const sum = items.reduce((s, i) => s + i.pct, 0) || 1
   const gap = items.length > 1 ? 3 : 0
 
-  let used = 0
+  const lengths = items.map((item) => (item.pct / sum) * circumference)
+
   const segments = items.map((item, index) => {
-    const length = (item.pct / sum) * circumference
-    const draw = Math.max(0, length - gap)
-    const segment = {
+    const before = lengths.slice(0, index).reduce((a, b) => a + b, 0)
+    return {
       item,
-      draw,
-      offset: used + gap / 2,
+      draw: Math.max(0, lengths[index] - gap),
+      offset: before + gap / 2,
       color: COLORS[index % COLORS.length],
     }
-    used += length
-    return segment
   })
 
   return (
