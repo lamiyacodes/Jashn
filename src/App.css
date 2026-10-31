@@ -973,3 +973,194 @@ html {
   margin: 0 auto 18px;
   background: var(--ink);
 }
+
+/* Footer: full-width divider */
+.site-footer {
+  padding: 0;
+}
+
+.footer-credit::before {
+  content: none;
+}
+
+.footer-top {
+  padding: 34px 24px 26px;
+}
+
+.footer-bottom {
+  padding: 18px 24px 22px;
+  border-top: 2px solid var(--ink);
+}
+
+.site-footer .footer-credit {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Footer links */
+.footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.footer-links a {
+  padding: 7px 16px;
+  border: 2px solid var(--ink);
+  border-radius: 99px;
+  background: var(--gold);
+  box-shadow: 2px 2px 0 var(--ink);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.footer-links .link-btn {
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+/* Footer: two-column, no divider line */
+.site-footer {
+  padding: 0;
+  text-align: left;
+}
+
+.footer-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 36px 24px;
+}
+
+.site-footer .footer-left .footer-credit {
+  margin: 14px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.gh-btn {
+  padding: 8px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 99px;
+  background: var(--gold);
+  box-shadow: 3px 3px 0 var(--ink);
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.gh-btn:hover {
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.footer-right .link-btn {
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 700px) {
+  .site-footer {
+    text-align: center;
+  }
+
+  .footer-grid {
+    flex-direction: column;
+    gap: 20px;
+    padding: 30px 16px;
+  }
+
+  .footer-right {
+    align-items: center;
+  }
+}
+
+/* Footer: three parts, corners and centre */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-center {
+  text-align: center;
+}
+
+.footer-center .footer-credit {
+  margin: 14px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.footer-start {
+  justify-self: start;
+}
+
+.footer-end {
+  justify-self: end;
+}
+
+.footer-start .link-btn {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 18px;
+  }
+
+  .footer-center {
+    order: 0;
+  }
+
+  .footer-end {
+    order: 1;
+    justify-self: center;
+  }
+
+  .footer-start {
+    order: 2;
+    justify-self: center;
+  }
+}
+
+/* Back to top as a matching pill */
+.footer-start .link-btn {
+  padding: 8px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 99px;
+  background: #ffffff;
+  box-shadow: 3px 3px 0 var(--ink);
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-start .link-btn:hover {
+  background: #ffffff;
+  box-shadow: 4px 4px 0 var(--ink);
+  color: var(--ink);
+  transform: none;
+}
