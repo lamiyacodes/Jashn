@@ -55,6 +55,7 @@ export default function App() {
   const [refining, setRefining] = useState(false)
   const [refineNote, setRefineNote] = useState('')
   const [refineError, setRefineError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const hasPlanRef = useRef(!!saved.plan)
   const [view, setView] = useState(() => viewFromHash(!!saved.plan))
@@ -81,6 +82,24 @@ export default function App() {
 
   function goHome() {
     window.location.hash = 'home'
+  }
+
+  function clearSavedPlan() {
+    hasPlanRef.current = false
+    setPlan(null)
+    setIdeas(null)
+    setChecked({})
+    setSpent({})
+    setRefineText('')
+    setRefineNote('')
+    setRefineError('')
+    setForm(DEFAULT_FORM)
+    setConfirmDelete(false)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      // Storage may be unavailable; nothing to clear.
+    }
   }
 
   async function handleSubmit(e) {
@@ -290,13 +309,30 @@ export default function App() {
             </button>
           </form>
 
-          {plan && (
-            <p className="muted">
-              You have a saved plan.{' '}
-              <a href="#plan">View your last plan</a>
-            </p>
+                    {plan && (
+            <div className="saved">
+              <p className="muted">You have a saved plan.</p>
+              {!confirmDelete ? (
+                <div className="saved-actions">
+                  <a href="#plan">View your last plan</a>
+                  <button type="button" className="link-btn danger" onClick={() => setConfirmDelete(true)}>
+                    Delete saved plan
+                  </button>
+                </div>
+              ) : (
+                <div className="saved-actions" role="alert">
+                  <span>Delete this plan?</span>
+                  <button type="button" className="link-btn danger" onClick={clearSavedPlan}>
+                    Yes, delete
+                  </button>
+                  <button type="button" className="link-btn" onClick={() => setConfirmDelete(false)}>
+                    Keep it
+                  </button>
+                </div>
+              )}
+            </div>
           )}
-        </main>
+                  </main>
       )}
 
       {view === 'plan' && plan && (
