@@ -276,10 +276,37 @@ button:disabled {
 }
 
 footer {
-  margin-top: 32px;
+  margin-top: 56px;
+  padding: 28px 0 8px;
+  border-top: 1px solid #dde1e6;
   text-align: center;
+}
+
+footer p {
+  margin: 0;
+}
+
+.footer-main {
+  font-size: 0.95rem;
+  color: #52606d;
+}
+
+.footer-tagline {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #7b8794;
+}
+
+.footer-credit {
+  margin-top: 14px;
   font-size: 0.85rem;
   color: #7b8794;
+}
+
+.footer-credit strong {
+  font-weight: 600;
+  color: #1b2b4b;
 }
 
 @media (max-width: 520px) {

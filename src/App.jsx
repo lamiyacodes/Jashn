@@ -340,7 +340,13 @@ export default function App() {
         )}
       </main>
 
-      <footer>Jashn, a celebration and event planner</footer>
+      <footer>
+        <p className="footer-main">Jashn ~ Built for Hack2Skill PromptWars 2026</p>
+        <p className="footer-tagline">Plan the celebration, not the stress.</p>
+        <p className="footer-credit">
+          Designed and developed by <strong>Lamiya Zainab Abidi</strong>
+        </p>
+      </footer>
     </div>
   )
 }
