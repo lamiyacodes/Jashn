@@ -932,3 +932,28 @@ html {
     font-size: 0.72rem;
   }
 }
+
+/* Footer divider */
+.footer-credit {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid var(--ink);
+}
+
+/* Show the top bar tag on phones, smaller */
+@media (max-width: 560px) {
+  .topbar-tag {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 0.56rem;
+    letter-spacing: 0.05em;
+  }
+
+  .brand {
+    font-size: 1.6rem;
+  }
+
+  .topbar-inner {
+    gap: 8px;
+  }
+}

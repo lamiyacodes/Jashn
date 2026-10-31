@@ -287,7 +287,7 @@ export default function App() {
         <main className="container">
           <section className="hero">
             <div className="hero-copy">
-              <p className="eyebrow">Weddings, birthdays and community events</p>
+              <p className="eyebrow">Weddings, birthdays, fests and more</p>
               <h1>
                 Plan the celebration, <em>not the stress.</em>
               </h1>
