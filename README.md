@@ -123,15 +123,21 @@ The planner, budget, timeline, checklist and tracker work locally. The two AI en
 
 ## Project structure
 
-api/plan.js Gemini call for ideas and tips
-api/refine.js Gemini call for budget refinement
-src/App.jsx Interface and page flow
-src/App.css Styles
-src/BudgetChart.jsx Donut chart
-src/lib/planner.js Event templates, budget, timeline and fallback logic
-src/lib/planner.test.js Unit tests
-.github/workflows/ci.yml Runs tests and a build on every push
-vercel.json Function timeout
+api/plan.js                 Gemini call for ideas and tips
+api/refine.js               Gemini call for budget refinement
+api/_lib/gemini.js          Shared Gemini helper: retries, backup model, timeouts
+api/_lib/shape.js           Validation and rescaling of AI replies
+src/App.jsx                 State and page flow
+src/components/             Header, footer, home page, plan page, refine panel, chart
+src/components/sections/    Overview, budget, timeline, checklist and tracker sections
+src/hooks/                  Debounced saving
+src/lib/planner.js          Event templates, budget, timeline and fallback logic
+src/lib/format.js           Rupee, date and text formatting
+src/lib/api.js              JSON request helper
+src/lib/ideasCache.js       Session cache that avoids repeated AI calls
+src/lib/storage.js          Browser storage helpers
+.github/workflows/ci.yml    Lint, tests and build on every push
+vercel.json                 Function timeouts, security and cache headers
 
 
 ## Author
