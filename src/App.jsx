@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { EVENT_TYPES, buildPlan, fallbackSuggestions } from './lib/planner'
+import { capitalise, rupees, shortDate, titleCase } from './lib/format'
 import BudgetChart from './BudgetChart'
+import SiteHeader from './components/SiteHeader'
+import SiteFooter from './components/SiteFooter'
+import HomePage from './components/HomePage'
 
 const STORAGE_KEY = 'jashn-state-v2'
 
@@ -20,32 +24,6 @@ const SECTIONS = [
   ['tracker', 'Spending tracker'],
 ]
 
-const FEATURES = [
-  'Budget split with a clear chart',
-  'Countdown timeline built from your date',
-  'Vendor checklist with progress',
-  'Ideas written for your city and theme',
-  'Refine the plan just by asking',
-]
-
-const STEPS = [
-  ['1', 'Describe your event', 'Choose the event type, guests, budget, date and city.'],
-  ['2', 'Get a complete plan', 'Budget, timeline, vendor checklist and personalised ideas in seconds.'],
-  ['3', 'Refine it by asking', 'Say what to change and the budget is rebalanced for you.'],
-]
-
-const rupees = (n) => '₹' + Math.round(n).toLocaleString('en-IN')
-const shortDate = (iso) =>
-  new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-
-function loadSaved() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}
-  } catch {
-    return {}
-  }
-}
-
 const DEFAULT_FORM = {
   type: 'wedding',
   customType: '',
@@ -56,21 +34,26 @@ const DEFAULT_FORM = {
   vibe: '',
 }
 
+function loadSaved() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}
+  } catch {
+    return {}
+  }
+}
+
 function viewFromHash(hasPlan) {
   return window.location.hash === '#plan' && hasPlan ? 'plan' : 'home'
 }
 
-function capitalise(text) {
-  const value = String(text || '')
-  return value.charAt(0).toUpperCase() + value.slice(1)
-}
-
-function titleCase(text) {
-  return String(text || '')
-    .trim()
-    .split(/\s+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
+async function readError(response, fallback) {
+  try {
+    const body = await response.json()
+    if (body.error) return body.error
+  } catch {
+    // Response was not JSON, keep the fallback message.
+  }
+  return fallback
 }
 
 export default function App() {
@@ -168,14 +151,8 @@ export default function App() {
         body: JSON.stringify(form),
       })
       if (!response.ok) {
-        let reason = 'AI service returned status ' + response.status
-        try {
-          const err = await response.json()
-          if (err.error) reason = err.error + ' (status ' + response.status + ')'
-        } catch {
-          // Response was not JSON, keep the status message.
-        }
-        throw new Error(reason)
+        const reason = await readError(response, 'AI service returned status ' + response.status)
+        throw new Error(reason + ' (status ' + response.status + ')')
       }
       const data = await response.json()
       if (!Array.isArray(data.ideas) || data.ideas.length === 0) {
@@ -220,14 +197,7 @@ export default function App() {
         }),
       })
       if (!response.ok) {
-        let reason = 'status ' + response.status
-        try {
-          const err = await response.json()
-          if (err.error) reason = err.error
-        } catch {
-          // Response was not JSON, keep the status message.
-        }
-        throw new Error(reason)
+        throw new Error(await readError(response, 'status ' + response.status))
       }
       const data = await response.json()
       if (!Array.isArray(data.budget)) throw new Error('AI response had no budget')
@@ -268,152 +238,21 @@ export default function App() {
 
   return (
     <div className="site">
-      <header className="topbar">
-        <div className="topbar-inner">
-          <a href="#home" className="brand">
-            Jashn
-          </a>
-          {view === 'plan' ? (
-            <button type="button" className="top-btn" onClick={goHome}>
-              Edit details or plan another event
-            </button>
-          ) : (
-            <span className="topbar-tag">Celebration and event planner</span>
-          )}
-        </div>
-      </header>
+      <SiteHeader view={view} onEdit={goHome} />
 
       {view === 'home' && (
-        <main className="container">
-          <section className="hero">
-            <div className="hero-copy">
-              <p className="eyebrow">Weddings, birthdays, fests and more</p>
-              <h1>
-                Plan the celebration, <em>not the stress.</em>
-              </h1>
-              <p className="lead">
-                Tell Jashn about your event and get a budget, a countdown timeline, a vendor checklist
-                and ideas written for your city. Then reshape the plan just by asking.
-              </p>
-              <ul className="feature-list">
-                {FEATURES.map((feature) => (
-                  <li key={feature}>
-                    <span className="dot" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="hero-form">
-              <form className="card" onSubmit={handleSubmit}>
-                <h2>Start your plan</h2>
-
-                <label htmlFor="type">Event type</label>
-                <select id="type" value={form.type} onChange={update('type')}>
-                  {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value.label}
-                    </option>
-                  ))}
-                </select>
-
-                {form.type === 'other' && (
-                  <>
-                    <label htmlFor="customType">Describe your event</label>
-                    <input
-                      id="customType"
-                      type="text"
-                      maxLength={60}
-                      placeholder="Housewarming, farewell party, reunion"
-                      value={form.customType}
-                      onChange={update('customType')}
-                    />
-                  </>
-                )}
-
-                <div className="row">
-                  <div>
-                    <label htmlFor="guests">Number of guests</label>
-                    <input id="guests" type="number" min="1" value={form.guests} onChange={update('guests')} />
-                  </div>
-                  <div>
-                    <label htmlFor="budget">Total budget (₹)</label>
-                    <input id="budget" type="number" min="1" value={form.budget} onChange={update('budget')} />
-                  </div>
-                </div>
-
-                <div className="row">
-                  <div>
-                    <label htmlFor="date">Event date</label>
-                    <input id="date" type="date" value={form.date} onChange={update('date')} />
-                  </div>
-                  <div>
-                    <label htmlFor="city">City</label>
-                    <input id="city" type="text" placeholder="Lucknow" value={form.city} onChange={update('city')} />
-                  </div>
-                </div>
-
-                <label htmlFor="vibe">Theme or style (optional)</label>
-                <input
-                  id="vibe"
-                  type="text"
-                  placeholder="Traditional, minimal, pastel"
-                  value={form.vibe}
-                  onChange={update('vibe')}
-                />
-
-                {error && (
-                  <p className="message error" role="alert">
-                    {error}
-                  </p>
-                )}
-
-                <button type="submit" disabled={loading}>
-                  {loading ? 'Preparing plan...' : 'Generate plan'}
-                </button>
-              </form>
-
-              {plan && (
-                <div className="saved">
-                  <p className="muted">You have a saved plan.</p>
-                  {!confirmDelete ? (
-                    <div className="saved-actions">
-                      <a href="#plan">View your last plan</a>
-                      <button
-                        type="button"
-                        className="link-btn danger"
-                        onClick={() => setConfirmDelete(true)}
-                      >
-                        Delete saved plan
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="saved-actions" role="alert">
-                      <span>Delete this plan?</span>
-                      <button type="button" className="link-btn danger" onClick={clearSavedPlan}>
-                        Yes, delete
-                      </button>
-                      <button type="button" className="link-btn" onClick={() => setConfirmDelete(false)}>
-                        Keep it
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className="steps" aria-label="How it works">
-            {STEPS.map(([num, title, text]) => (
-              <div key={num} className="step">
-                <span className="num">{num}</span>
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </div>
-            ))}
-          </section>
-        </main>
+        <HomePage
+          form={form}
+          update={update}
+          error={error}
+          loading={loading}
+          onSubmit={handleSubmit}
+          hasSavedPlan={!!plan}
+          confirmDelete={confirmDelete}
+          onAskDelete={() => setConfirmDelete(true)}
+          onCancelDelete={() => setConfirmDelete(false)}
+          onConfirmDelete={clearSavedPlan}
+        />
       )}
 
       {view === 'plan' && plan && (
@@ -660,36 +499,7 @@ export default function App() {
         </main>
       )}
 
-                        <footer className="site-footer">
-        <div className="container footer-grid">
-          <div className="footer-start">
-            <button
-              type="button"
-              className="link-btn"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            >
-              Back to top
-            </button>
-          </div>
-          <div className="footer-center">
-            <p className="footer-main">Jashn ~ Built for Hack2Skill PromptWars 2026</p>
-            <p className="footer-tagline">Plan the celebration, not the stress.</p>
-            <p className="footer-credit">
-              Designed and developed by <strong>Lamiya Zainab Abidi</strong>
-            </p>
-          </div>
-          <div className="footer-end">
-            <a
-              className="gh-btn"
-              href="https://github.com/lamiyacodes/Jashn"
-              target="_blank"
-              rel="noreferrer"
-            >
-              View on GitHub
-            </a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }
