@@ -123,6 +123,7 @@ The planner, budget, timeline, checklist and tracker work locally. The two AI en
 
 ## Project structure
 
+```
 api/plan.js                 Gemini call for ideas and tips
 api/refine.js               Gemini call for budget refinement
 api/_lib/gemini.js          Shared Gemini helper: retries, backup model, timeouts
@@ -138,6 +139,7 @@ src/lib/ideasCache.js       Session cache that avoids repeated AI calls
 src/lib/storage.js          Browser storage helpers
 .github/workflows/ci.yml    Lint, tests and build on every push
 vercel.json                 Function timeouts, security and cache headers
+```
 
 
 ## Author
